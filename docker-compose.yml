@@ -1,0 +1,54 @@
+version: '3.8'
+services:
+  drupal:
+    image: bitnami/drupal:latest
+    ports:
+      - 8080:8080
+    environment:
+      - MARIADB_HOST=db
+      - MARIADB_PORT_NUMBER=3306
+      - DRUPAL_DATABASE_USER=bn_drupal
+      - DRUPAL_DATABASE_PASSWORD=bitnami
+      - DRUPAL_DATABASE_NAME=bitnami_drupal
+    volumes:
+      - drupal_data:/bitnami/drupal
+    depends_on:
+      - db
+    networks:
+      - drupal_network
+ db:
+    image: bitnami/mariadb:latest
+    environment:
+      - MARIADB_USER=YAM428
+      - MARIADB_PASSWORD=30719098
+      - MARIADB_DATABASE=final
+    volumes:
+      - db_data:/bitnami/mariadb
+    networks:
+      - drupal_network
+
+  webserver:
+    image: nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - drupal_data:/bitnami/drupal
+    networks:
+      - drupal_network
+  certbot:
+    image: certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - webserver
+    networks:
+      - drupal_network
+
+networks:
+  drupal_network:
+
+volumes:
+  drupal_data:
+  db_data:
